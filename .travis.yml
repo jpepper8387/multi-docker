@@ -1,0 +1,22 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t jpepper8387/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run -e CI=true jpepper8387/react-test npm test
+
+after_success:
+  - docker build -t jpepper8387/multi-client ./client
+  - docker build -t jpepper8387/multi-nginx ./nginx
+  - docker build -t jpepper8387/multi-server ./server
+  - docker build -t jpepper8387/multi-worker ./worker
+  # Log in to docker CLI
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  #Take those images and push them to docker hub
+  - docker push jpepper8387/multi-client
+  - docker push jpepper8387/multi-nginx
+  - docker push jpepper8387/multi-server
+  - docker push jpepper8387/multi-worker
